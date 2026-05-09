@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}Admin Panel — SecureVault{% endblock %}
+{% block body %}
+<div class="container">
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="alerts" style="margin-top:1rem;">
+        {% for cat, msg in messages %}
+          <div class="alert alert-{{ cat }}">{{ msg }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <div class="page-header" style="margin-top:1.5rem;">
+    <h1><span style="color:#a78bfa;">⚙</span> Admin Panel</h1>
+    <p>Full system access — Role: <span class="role-admin">Admin</span></p>
+  </div>
+
+  <!-- Stats -->
+  <div class="grid-3" style="margin-bottom:2rem;">
+    <div class="stat-card">
+      <div class="stat-label">Total Users</div>
+      <div class="stat-value">{{ users|length }}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Total Encrypted Notes</div>
+      <div class="stat-value" style="color:#a78bfa;">{{ total_notes }}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Admins</div>
+      <div class="stat-value" style="color:#f59e0b;">{{ users | selectattr('role', 'equalto', 'admin') | list | length }}</div>
+    </div>
+  </div>
+
+  <!-- Users Table -->
+  <div class="card">
+    <div class="card-title">User Management</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Username</th>
+          <th>Role</th>
+          <th>User ID</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in users %}
+        <tr>
+          <td style="font-weight:600;">
+            {{ u.username }}
+            {% if u._id == session.user_id %}
+              <span style="font-size:10px; color:var(--muted); margin-left:6px;">(you)</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if u.role == 'admin' %}
+              <span class="role-admin">⚙ Admin</span>
+            {% else %}
+              <span class="role-user">User</span>
+            {% endif %}
+          </td>
+          <td style="color:var(--muted); font-size:11px; font-family:'Space Mono',monospace;">{{ u._id[:16] }}…</td>
+          <td>
+            <div style="display:flex; gap:6px; flex-wrap:wrap;">
+              {% if u._id != session.user_id %}
+                {% if u.role != 'admin' %}
+                  <form method="POST" action="{{ url_for('promote_user', user_id=u._id) }}">
+                    <button type="submit" class="btn btn-purple btn-sm">↑ Promote</button>
+                  </form>
+                {% else %}
+                  <form method="POST" action="{{ url_for('demote_user', user_id=u._id) }}">
+                    <button type="submit" class="btn btn-ghost btn-sm">↓ Demote</button>
+                  </form>
+                {% endif %}
+                <form method="POST" action="{{ url_for('delete_user', user_id=u._id) }}" onsubmit="return confirm('Delete user {{ u.username }} and all their notes?')">
+                  <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                </form>
+              {% else %}
+                <span style="color:var(--muted); font-size:11px;">—</span>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card" style="margin-top:1.5rem; border-color:rgba(245,158,11,0.2);">
+    <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.1em; color:var(--warn); margin-bottom:8px;">⚠ Security Note</div>
+    <p style="color:var(--muted); font-size:13px; line-height:1.6;">
+      All note contents are encrypted in MongoDB using Fernet (AES-128-CBC). Even with direct database access, stored data is unreadable without the application's secret key. Passwords are hashed using Werkzeug's Bcrypt and are never stored in plaintext.
+    </p>
+  </div>
+
+</div>
+{% endblock %}
