@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Register — SecureVault{% endblock %}
+{% block body %}
+<div class="auth-wrap">
+  <div class="auth-box">
+    <div class="auth-logo">SecureVault</div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="alerts">
+          {% for cat, msg in messages %}
+            <div class="alert alert-{{ cat }}">{{ msg }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST" action="{{ url_for('register') }}">
+      <div class="form-group">
+        <label>Username <span style="color:#64748b;">(3–32 chars)</span></label>
+        <input type="text" name="username" autocomplete="username" required placeholder="choose_a_username" minlength="3" maxlength="32" />
+      </div>
+      <div class="form-group">
+        <label>Password <span style="color:#64748b;">(min 8 chars)</span></label>
+        <input type="password" name="password" autocomplete="new-password" required placeholder="••••••••" minlength="8" />
+      </div>
+      <div class="form-group">
+        <label>Confirm Password</label>
+        <input type="password" name="confirm_password" autocomplete="new-password" required placeholder="••••••••" />
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center; margin-top:0.5rem;">
+        Create Account →
+      </button>
+    </form>
+
+    <div class="auth-footer">
+      Already have an account? <a href="{{ url_for('login') }}">Log in</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
